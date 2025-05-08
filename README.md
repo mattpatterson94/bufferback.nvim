@@ -11,26 +11,17 @@ TODO: add recording
 Using Lazy:
 
 ```lua
-  {
-    'mattpatterson94/bufferback.nvim',
-    opts = {
-      max_stack_size = 20,
-      keymaps = {
-        delete_buffer = "<S-w>",
-        restore_buffer = "<S-M-w>",
-        list_stack = "<leader>bL",
-      }
-    })
-    },
-  },
-```
-
-## Configuration
-
-`bufferback.nvim` requires no configuration out of the box, but you can tweak it in the following ways:
-
-```lua
-require("bufferback.nvim").setup()
+{
+  'mattpatterson94/bufferback.nvim',
+  opts = {
+    max_stack_size = 20,
+    keymaps = {
+      delete_buffer = "<S-w>",
+      restore_buffer = "<S-M-w>",
+      list_stack = "<leader>bL",
+    }
+  }
+}
 ```
 
 ## Usage
