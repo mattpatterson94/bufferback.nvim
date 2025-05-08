@@ -4,14 +4,26 @@ local M = {}
 -- Stack to store recently closed buffers
 M.buffer_stack = {}
 -- Maximum number of buffers to remember
-M.max_stack_size = 20
+M.max_stack_size = 200
 -- Default keymaps configuration
 M.default_keymaps = {
   delete_buffer = "<S-w>", -- Shift+W to delete buffer
   restore_buffer = "<S-M-w>", -- Shift+Opt+W to restore buffer
-  list_stack = "<leader>bl", -- List the buffer stack
+  list_stack = "<leader>bL", -- List the buffer stack
   enable = true, -- Whether to use default keymaps
 }
+-- Default notification settings
+M.notifications = {
+  enabled = false, -- Disable notifications by default
+  level = vim.log.levels.INFO, -- Default notification level
+}
+
+-- Helper function to show notifications only when enabled
+local function notify(message, level)
+  if M.notifications.enabled then
+    vim.notify(message, level or M.notifications.level)
+  end
+end
 
 -- Push a buffer to the stack when it's deleted
 local function push_to_stack(bufnr)
@@ -35,6 +47,8 @@ local function push_to_stack(bufnr)
   if #M.buffer_stack > M.max_stack_size then
     table.remove(M.buffer_stack)
   end
+
+  notify("Added to buffer stack: " .. vim.fn.fnamemodify(filepath, ":t"))
 end
 
 -- Delete the current buffer
@@ -47,16 +61,16 @@ function M.delete_buffer()
   -- Delete the buffer
   vim.cmd("bdelete")
 
-  -- Optional: Notify user
+  -- Notify if enabled
   if filepath ~= "" then
-    vim.notify("Deleted buffer: " .. vim.fn.fnamemodify(filepath, ":t"), vim.log.levels.INFO)
+    notify("Deleted buffer: " .. vim.fn.fnamemodify(filepath, ":t"))
   end
 end
 
 -- Restore the most recently closed buffer
 function M.restore_buffer()
   if #M.buffer_stack == 0 then
-    vim.notify("No buffers to restore", vim.log.levels.INFO)
+    notify("No buffers to restore", vim.log.levels.WARN)
     return
   end
 
@@ -64,7 +78,7 @@ function M.restore_buffer()
 
   -- Check if file exists before restoring
   if vim.fn.filereadable(buf_info.filepath) == 0 then
-    vim.notify("File no longer exists: " .. buf_info.filepath, vim.log.levels.WARN)
+    notify("File no longer exists: " .. buf_info.filepath, vim.log.levels.WARN)
     -- Try the next file in stack
     return M.restore_buffer()
   end
@@ -77,16 +91,18 @@ function M.restore_buffer()
     vim.api.nvim_win_set_cursor(0, buf_info.cursor_pos)
   end
 
-  vim.notify("Restored: " .. vim.fn.fnamemodify(buf_info.filepath, ":t"), vim.log.levels.INFO)
+  notify("Restored: " .. vim.fn.fnamemodify(buf_info.filepath, ":t"))
 end
 
 -- List all buffers in the stack
 function M.list_buffer_stack()
   if #M.buffer_stack == 0 then
-    vim.notify("Buffer stack is empty", vim.log.levels.INFO)
+    notify("Buffer stack is empty", vim.log.levels.INFO)
     return
   end
 
+  -- Always show this one, even with notifications disabled
+  -- since this is an explicit user request for information
   local lines = { "BufferBack Stack:" }
   for i, buf in ipairs(M.buffer_stack) do
     -- Get filename only for cleaner display
@@ -137,6 +153,11 @@ function M.setup(opts)
   -- Apply user options
   M.max_stack_size = opts.max_stack_size or M.max_stack_size
 
+  -- Setup notifications
+  if opts.notifications then
+    M.notifications = vim.tbl_deep_extend("force", M.notifications, opts.notifications)
+  end
+
   -- Create autocmd to track buffer deletions
   vim.api.nvim_create_autocmd("BufDelete", {
     pattern = "*",
@@ -152,6 +173,11 @@ function M.setup(opts)
 
   -- Setup keymaps with user overrides
   setup_keymaps(opts.keymaps)
+
+  -- Debug mode notification
+  if M.notifications.enabled then
+    vim.notify("BufferBack initialized with notifications enabled", vim.log.levels.INFO)
+  end
 end
 
 return M
