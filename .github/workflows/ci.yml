@@ -1,0 +1,32 @@
+name: autogen
+on:
+  push:
+    branches: [main]
+
+jobs:
+  autogen:
+    runs-on: ubuntu-20.04
+    timeout-minutes: 10
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v3
+      - name: panvimdoc
+        uses: kdheepak/panvimdoc@v3.0.3
+        with:
+          vimdoc: bufferback
+          description: Delete and restore buffers like browser tabs
+      - name: Apply stylua
+        uses: JohnnyMorganz/stylua-action@v2.0.0
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          args: --config-path=stylua.toml lua/
+          version: 0.14.1
+      - name: Push changes
+        uses: stefanzweifel/git-auto-commit-action@v4
+        with:
+          commit_message: "chore(build): auto-generate vimdoc / stylua"
+          commit_user_name: "github-actions[bot]"
+          commit_user_email: "github-actions[bot]@users.noreply.github.com"
+          commit_author: "github-actions[bot] <github-actions[bot]@users.noreply.github.com>"
