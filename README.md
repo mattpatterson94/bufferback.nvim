@@ -4,9 +4,7 @@ Restore closed buffers in the same way you restore closed tabs in your favourite
 
 ## In Action
 
-
-https://github.com/user-attachments/assets/75734474-229e-48d9-8bb4-070f66d0307e
-
+https://github.com/user-attachments/assets/e0b2b0e9-15f9-4108-b2aa-eb05a020e9c8
 
 ## Installation
 
